@@ -2,8 +2,8 @@ import { Column, Entity, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { Role, TransactionType } from '../../common/enums';
 import type { Relation } from 'typeorm';
-import { Wallet } from 'src/wallet/entities/wallet.entity';
-import { Payment } from 'src/payment/entities/payment.entity';
+import { Wallet } from '../../wallet/entities/wallet.entity';
+import { Payment } from '../../payment/entities/payment.entity';
 @Entity('transactions')
 export class Transaction extends BaseEntity {
   @ManyToOne(() => Wallet, (wallet) => wallet.id)

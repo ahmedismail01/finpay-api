@@ -10,6 +10,9 @@ export class Kyc extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   user: Relation<User>;
 
+  @Column({ name: 'user_id' })
+  userId: number;
+
   @Column({ type: 'enum', enum: KycType })
   type: KycType;
 

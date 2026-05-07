@@ -1,7 +1,7 @@
 import { Column, Entity, ManyToOne, OneToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
-import { User } from 'src/user/entities/user.entity';
-import { Currency } from 'src/database/entities/currency.entity';
+import { User } from '../../user/entities/user.entity';
+import { Currency } from '../../database/entities/currency.entity';
 
 @Entity('wallets')
 export class Wallet extends BaseEntity {
@@ -19,8 +19,8 @@ export class Wallet extends BaseEntity {
   isActive: boolean;
 
   @ManyToOne(() => User, { nullable: true })
-  suspendedBy: User;
+  suspendedBy: User | null;
 
   @Column({ nullable: true })
-  reasonOfSuspension: string;
+  reasonOfSuspension: string | null;
 }

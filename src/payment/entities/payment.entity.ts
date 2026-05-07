@@ -1,10 +1,10 @@
 import { Column, Entity, ManyToOne, OneToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
-import { User } from 'src/user/entities/user.entity';
-import { Wallet } from 'src/wallet/entities/wallet.entity';
-import { Transaction } from 'src/transaction/entities/transaction.entity';
+import { User } from '../../user/entities/user.entity';
+import { Wallet } from '../../wallet/entities/wallet.entity';
+import { Transaction } from '../../transaction/entities/transaction.entity';
 import type { Relation } from 'typeorm';
-import { Provider } from 'src/database/entities/provider.entity';
+import { Provider } from '../../database/entities/provider.entity';
 @Entity('payments')
 export class Payment extends BaseEntity {
   @ManyToOne(() => User)
