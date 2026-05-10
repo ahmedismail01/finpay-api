@@ -45,7 +45,9 @@ export class KycController {
     },
   ) {
     if (!files?.documentFront?.[0] || !files?.documentBack?.[0]) {
-      throw new BadRequestException('Both document front and back are required');
+      throw new BadRequestException(
+        'Both document front and back are required',
+      );
     }
     return this.kycService.createKyc(
       {
@@ -63,14 +65,18 @@ export class KycController {
     return this.kycService.getKyc(query);
   }
 
-  @Post('/:kycId/reject')
-  @Roles(Role.ADMIN)
-  async rejectKyc(
-    @Param('kycId') kycId: number,
-    @Body() body: RejectKycDto,
-    
+  @Get('/mine')
+  async getMyKycs(
+    @Query() query: KycQueryDto,
+    @CurrentUser() user: Partial<User>,
   ) {
-    return this.kycService.rejectKyc(kycId, body);
+    return this.kycService.getKyc({ ...query, userId: user.id });
+  }
+
+  @Post('/:userId/reject')
+  @Roles(Role.ADMIN)
+  async rejectKyc(@Param('userId') userId: number, @Body() body: RejectKycDto) {
+    return this.kycService.rejectKyc(userId, body);
   }
 
   @Post('/:userId/verify')

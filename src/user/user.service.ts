@@ -23,7 +23,8 @@ export class UserService {
         'User with this email or phone number already exists',
       );
     }
-    return this.userRepository.save(user);
+    const createdUser = this.userRepository.create(user);
+    return await this.userRepository.save(createdUser);
   }
 
   async findAll(): Promise<User[]> {

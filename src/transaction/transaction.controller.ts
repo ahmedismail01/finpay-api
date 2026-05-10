@@ -1,11 +1,20 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dtos/create-transaction.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../common/enums';
-
+import { TransactionQueryDto } from './dtos/transaction-query.dto';
+import { RolesGuard } from '../auth/guards/roles.guard';
 @Controller('transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
@@ -24,34 +33,29 @@ export class TransactionController {
   }
 
   @Get('wallet/:walletId')
+  @Roles(Role.ADMIN)
+  @UseGuards(RolesGuard)
   async getWalletTransactions(
     @Param('walletId') walletId: number,
-    @Query('limit') limit: number = 10,
-    @Query('offset') offset: number = 0,
+    @Query() query: TransactionQueryDto,
   ) {
-    return this.transactionService.getWalletTransactions(
-      walletId,
-      limit,
-      offset,
-    );
+    return this.transactionService.getWalletTransactions(walletId, query);
   }
 
   @Get()
   @Roles(Role.ADMIN)
-  async getAllTransactions(
-    @Query('limit') limit: number = 10,
-    @Query('offset') offset: number = 0,
-  ) {
-    return this.transactionService.getAllTransactions(limit, offset);
+  @UseGuards(RolesGuard)
+  async getAllTransactions(@Query() query: TransactionQueryDto) {
+    return this.transactionService.getAllTransactions(query);
   }
 
   @Get('by-type/:type')
   @Roles(Role.ADMIN)
+  @UseGuards(RolesGuard)
   async getTransactionsByType(
     @Param('type') type: string,
-    @Query('limit') limit: number = 10,
-    @Query('offset') offset: number = 0,
+    @Query() query: TransactionQueryDto,
   ) {
-    return this.transactionService.getTransactionsByType(type, limit, offset);
+    return this.transactionService.getTransactionsByType(type, query);
   }
 }

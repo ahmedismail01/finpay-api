@@ -13,6 +13,7 @@ import { User } from '../user/entities/user.entity';
 import { Provider } from '../database/entities/provider.entity';
 import { WalletService } from '../wallet/wallet.service';
 import { TransactionService } from '../transaction/transaction.service';
+import { PaymentQueryDto } from './dtos/payment-query.dto';
 
 @Injectable()
 export class PaymentService {
@@ -27,10 +28,7 @@ export class PaymentService {
     private transactionService: TransactionService,
   ) {}
 
-  async createPayment(
-    user: User,
-    dto: CreatePaymentDto,
-  ): Promise<Payment> {
+  async createPayment(user: User, dto: CreatePaymentDto): Promise<Payment> {
     // Verify wallet belongs to user
     const wallet = await this.walletRepository.findOne({
       where: { id: dto.walletId, user: { id: user.id } },
@@ -75,9 +73,8 @@ export class PaymentService {
       balanceAfterTransactionInCents: wallet.balanceInCents,
     });
 
-    savedPayment.transaction = await this.transactionRepository.save(
-      transaction,
-    );
+    savedPayment.transaction =
+      await this.transactionRepository.save(transaction);
 
     return this.paymentRepository.save(savedPayment);
   }
@@ -95,11 +92,8 @@ export class PaymentService {
     return payment;
   }
 
-  async getUserPayments(
-    userId: number,
-    limit: number = 10,
-    offset: number = 0,
-  ) {
+  async getUserPayments(userId: number, limit: number = 10, page: number = 1) {
+    const offset = (page - 1) * limit;
     const [payments, total] = await this.paymentRepository.findAndCount({
       where: { user: { id: userId } },
       relations: ['user', 'wallet', 'provider', 'transaction'],
@@ -111,11 +105,8 @@ export class PaymentService {
     return { payments, total };
   }
 
-  async getWalletPayments(
-    walletId: number,
-    limit: number = 10,
-    offset: number = 0,
-  ) {
+  async getWalletPayments(walletId: number, query: PaymentQueryDto) {
+    const { offset, limit } = query;
     // Verify wallet exists
     await this.walletService.getWalletById(walletId);
 
@@ -130,8 +121,10 @@ export class PaymentService {
     return { payments, total };
   }
 
-  async getAllPayments(limit: number = 10, offset: number = 0) {
+  async getAllPayments(query: PaymentQueryDto) {
+    const { page, limit, offset, ...filters } = query;
     const [payments, total] = await this.paymentRepository.findAndCount({
+      where: filters,
       relations: ['user', 'wallet', 'provider', 'transaction'],
       order: { createdAt: 'DESC' },
       take: limit,

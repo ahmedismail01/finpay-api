@@ -1,6 +1,6 @@
 import { IsOptional, IsUUID, IsString, IsNumber, Min } from 'class-validator';
-
-export class PaymentQueryDto {
+import { PaginationBaseDto } from '../../common/dtos/pagination-base.dto';
+export class PaymentQueryDto extends PaginationBaseDto {
   @IsOptional()
   @IsUUID()
   walletId?: string;
@@ -8,14 +8,4 @@ export class PaymentQueryDto {
   @IsOptional()
   @IsString()
   status?: string;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  limit?: number = 10;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  offset?: number = 0;
 }

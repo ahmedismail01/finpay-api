@@ -1,10 +1,21 @@
-import { Controller, Get, Post, Body, Param, Put, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dtos/create-payment.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../common/enums';
+import { PaymentQueryDto } from './dtos/payment-query.dto';
+import { JWTAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('payments')
 export class PaymentController {
@@ -26,48 +37,26 @@ export class PaymentController {
   @Get('user/my-payments')
   async getMyPayments(
     @CurrentUser() user: User,
-    @Query('limit') limit: number = 10,
-    @Query('offset') offset: number = 0,
+    @Query() query: PaymentQueryDto,
   ) {
-    return this.paymentService.getUserPayments(user.id, limit, offset);
+    return this.paymentService.getUserPayments(
+      user.id,
+      query.limit,
+      query.page,
+    );
   }
 
   @Get('wallet/:walletId')
   async getWalletPayments(
     @Param('walletId') walletId: number,
-    @Query('limit') limit: number = 10,
-    @Query('offset') offset: number = 0,
+    @Query() query: PaymentQueryDto,
   ) {
-    return this.paymentService.getWalletPayments(walletId, limit, offset);
+    return this.paymentService.getWalletPayments(walletId, query);
   }
 
   @Get()
   @Roles(Role.ADMIN)
-  async getAllPayments(
-    @Query('limit') limit: number = 10,
-    @Query('offset') offset: number = 0,
-  ) {
-    return this.paymentService.getAllPayments(limit, offset);
-  }
-
-  @Put(':paymentId/status')
-  @Roles(Role.ADMIN)
-  async updatePaymentStatus(
-    @Param('paymentId') paymentId: number,
-    @Body() body: { status: string; log?: any },
-  ) {
-    return this.paymentService.updatePaymentStatus(
-      paymentId,
-      body.status,
-      body.log,
-    );
-  }
-
-  @Post(':paymentId/refund')
-  async refundPayment(
-    @Param('paymentId') paymentId: number,
-    @CurrentUser() user: User,
-  ) {
-    return this.paymentService.refundPayment(paymentId);
+  async getAllPayments(@Query() query: PaymentQueryDto) {
+    return this.paymentService.getAllPayments(query);
   }
 }

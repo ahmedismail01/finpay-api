@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { Role, TransactionType } from '../../common/enums';
 import type { Relation } from 'typeorm';
@@ -27,6 +34,10 @@ export class Transaction extends BaseEntity {
   @Column({ unique: true })
   idempotencyKey: string;
 
+  @Column({ type: 'int', name: 'payment_id', nullable: true })
+  paymentId: number | null;
+
   @OneToOne(() => Payment, (payment) => payment.transaction)
+  @JoinColumn({ name: 'payment_id' })
   payment: Relation<Payment>;
 }

@@ -21,6 +21,6 @@ export class Wallet extends BaseEntity {
   @ManyToOne(() => User, { nullable: true })
   suspendedBy: User | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   reasonOfSuspension: string | null;
 }

@@ -10,6 +10,7 @@ import { Transaction } from './entities/transaction.entity';
 import { CreateTransactionDto } from './dtos/create-transaction.dto';
 import { Wallet } from '../wallet/entities/wallet.entity';
 import { WalletService } from '../wallet/wallet.service';
+import { TransactionQueryDto } from './dtos/transaction-query.dto';
 
 @Injectable()
 export class TransactionService {
@@ -84,11 +85,7 @@ export class TransactionService {
     return transaction;
   }
 
-  async getWalletTransactions(
-    walletId: number,
-    limit: number = 10,
-    offset: number = 0,
-  ) {
+  async getWalletTransactions(walletId: number, query: TransactionQueryDto) {
     // Verify wallet exists
     await this.walletService.getWalletById(walletId);
 
@@ -97,32 +94,31 @@ export class TransactionService {
         where: { wallet: { id: walletId } },
         relations: ['wallet', 'payment'],
         order: { createdAt: 'DESC' },
-        take: limit,
-        skip: offset,
+        take: query.limit,
+        skip: query.offset,
       },
     );
 
     return { transactions, total };
   }
 
-  async getAllTransactions(limit: number = 10, offset: number = 0) {
+  async getAllTransactions(query: TransactionQueryDto) {
+    const { limit, offset, page, ...filters } = query;
     const [transactions, total] = await this.transactionRepository.findAndCount(
       {
+        where: filters,
         relations: ['wallet', 'payment'],
         order: { createdAt: 'DESC' },
-        take: limit,
-        skip: offset,
+        take: query.limit,
+        skip: query.offset,
       },
     );
 
     return { transactions, total };
   }
 
-  async getTransactionsByType(
-    type: string,
-    limit: number = 10,
-    offset: number = 0,
-  ) {
+  async getTransactionsByType(type: string, query: TransactionQueryDto) {
+    const { offset, limit } = query;
     const [transactions, total] = await this.transactionRepository.findAndCount(
       {
         where: { type },

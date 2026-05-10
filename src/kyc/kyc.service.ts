@@ -38,8 +38,10 @@ export class KycService {
     return records;
   }
 
-  async rejectKyc(kycId: number, rejectKycDto: RejectKycDto) {
-    const kyc = await this.kycRepository.findOne({ where: { id: kycId } });
+  async rejectKyc(userId: number, rejectKycDto: RejectKycDto) {
+    const kyc = await this.kycRepository.findOne({
+      where: { user: { id: userId } },
+    });
     if (!kyc) {
       throw new NotFoundException('KYC not found');
     }
@@ -49,8 +51,8 @@ export class KycService {
     return kyc;
   }
 
-  async verifyKyc(userId: number) {
-    const kyc = await this.kycRepository.findOne({ where: { userId } });
+  async verifyKyc(kycId: number) {
+    const kyc = await this.kycRepository.findOne({ where: { id: kycId } });
     if (!kyc) {
       throw new NotFoundException('KYC not found');
     }
