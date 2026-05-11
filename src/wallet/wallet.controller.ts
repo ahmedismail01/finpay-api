@@ -13,21 +13,14 @@ import { CreateWalletDto } from './dtos/create-wallet.dto';
 import { UpdateWalletDto } from './dtos/update-wallet.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../user/entities/user.entity';
-import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../common/enums';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('wallets')
+@ApiBearerAuth()
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
-
-  @Post()
-  async createWallet(
-    @CurrentUser() user: User,
-    @Body() createWalletDto: CreateWalletDto,
-  ) {
-    return this.walletService.createWallet(user, createWalletDto);
-  }
 
   @Get('my-wallet')
   async getMyWallet(@CurrentUser() user: User) {
@@ -35,6 +28,7 @@ export class WalletController {
   }
 
   @Get(':walletId')
+  @Roles(Role.ADMIN)
   async getWallet(@Param('walletId') walletId: number) {
     return this.walletService.getWalletById(walletId);
   }

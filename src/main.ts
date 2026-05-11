@@ -19,6 +19,7 @@ async function bootstrap() {
     .setTitle('finpay-api')
     .setVersion('1.0')
     .addTag('fpay')
+    .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

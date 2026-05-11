@@ -15,7 +15,9 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../common/enums';
 import { TransactionQueryDto } from './dtos/transaction-query.dto';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 @Controller('transactions')
+@ApiBearerAuth()
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 

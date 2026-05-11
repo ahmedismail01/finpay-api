@@ -9,4 +9,6 @@ export class Currency extends BaseEntity {
   code: string;
   @Column()
   symbol: string;
+  @Column({ name: 'is_default', default: false })
+  isDefault: boolean;
 }

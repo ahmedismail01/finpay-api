@@ -11,6 +11,7 @@ import { CreateWalletDto } from './dtos/create-wallet.dto';
 import { UpdateWalletDto } from './dtos/update-wallet.dto';
 import { User } from '../user/entities/user.entity';
 import { Currency } from '../database/entities/currency.entity';
+import { WalletQueryDto } from './dtos/wallet-query.dto';
 
 @Injectable()
 export class WalletService {
@@ -20,6 +21,13 @@ export class WalletService {
     @InjectRepository(Currency)
     private currencyRepository: Repository<Currency>,
   ) {}
+
+  async getWallet(query: WalletQueryDto): Promise<Wallet | null> {
+    const existingWallet = await this.walletRepository.findOne({
+      where: query,
+    });
+    return existingWallet;
+  }
 
   async createWallet(user: User, dto: CreateWalletDto): Promise<Wallet> {
     const existingWallet = await this.walletRepository.findOne({

@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToOne,
+  JoinColumn,
+  JoinTable,
+} from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { User } from '../../user/entities/user.entity';
 import { Currency } from '../../database/entities/currency.entity';
@@ -6,11 +13,18 @@ import { Currency } from '../../database/entities/currency.entity';
 @Entity('wallets')
 export class Wallet extends BaseEntity {
   @OneToOne(() => User)
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @Column({ type: 'int', name: 'user_id' })
+  userId: number;
+
   @ManyToOne(() => Currency)
+  @JoinColumn({ name: 'currency_id' })
   currency: Currency;
+
+  @Column({ name: 'currency_id', type: 'int' })
+  currencyId: number;
 
   @Column({ type: 'bigint', default: 0 })
   balanceInCents: number;

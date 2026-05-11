@@ -18,9 +18,11 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../common/enums';
 import { createFileUploadInterceptor } from '../common/utils/multer.helper';
 import { KycQueryDto } from './dtos/kyc-query.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 @Controller('kyc')
+@ApiBearerAuth()
 export class KycController {
   constructor(private readonly kycService: KycService) {}
 
@@ -73,15 +75,19 @@ export class KycController {
     return this.kycService.getKyc({ ...query, userId: user.id });
   }
 
-  @Post('/:userId/reject')
+  @Post('/:kycId/reject')
   @Roles(Role.ADMIN)
-  async rejectKyc(@Param('userId') userId: number, @Body() body: RejectKycDto) {
-    return this.kycService.rejectKyc(userId, body);
+  async rejectKyc(
+    @CurrentUser() admin: User,
+    @Param('kycId') kycId: number,
+    @Body() body: RejectKycDto,
+  ) {
+    return this.kycService.rejectKyc(kycId, body, admin);
   }
 
-  @Post('/:userId/verify')
+  @Post('/:kycId/verify')
   @Roles(Role.ADMIN)
-  async verifyKyc(@Param('userId') userId: number) {
-    return this.kycService.verifyKyc(userId);
+  async verifyKyc(@Param('kycId') kycId: number) {
+    return this.kycService.verifyKyc(kycId);
   }
 }

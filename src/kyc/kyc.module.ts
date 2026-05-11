@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Kyc } from './entities/kyc.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { WalletModule } from '../wallet/wallet.module';
+import { Currency } from '../database/entities/currency.entity';
 
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
@@ -13,9 +15,13 @@ const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
   controllers: [KycController],
   providers: [KycService],
   exports: [],
-  imports: [UserModule,TypeOrmModule.forFeature([Kyc]) , 
-  MulterModule.register({
-    dest: './uploads/kyc',
-  })],
+  imports: [
+    UserModule,
+    WalletModule,
+    TypeOrmModule.forFeature([Kyc, Currency]),
+    MulterModule.register({
+      dest: './uploads/kyc',
+    }),
+  ],
 })
 export class KycModule {}
