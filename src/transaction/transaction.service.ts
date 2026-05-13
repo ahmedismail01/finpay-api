@@ -11,6 +11,10 @@ import { CreateTransactionDto } from './dtos/create-transaction.dto';
 import { Wallet } from '../wallet/entities/wallet.entity';
 import { WalletService } from '../wallet/wallet.service';
 import { TransactionQueryDto } from './dtos/transaction-query.dto';
+import {
+  createPaginatedResponse,
+  PaginatedResponse,
+} from '../common/utils/pagination.helper';
 
 @Injectable()
 export class TransactionService {
@@ -85,7 +89,10 @@ export class TransactionService {
     return transaction;
   }
 
-  async getWalletTransactions(walletId: number, query: TransactionQueryDto) {
+  async getWalletTransactions(
+    walletId: number,
+    query: TransactionQueryDto,
+  ): Promise<PaginatedResponse<Transaction[]>> {
     // Verify wallet exists
     await this.walletService.getWalletById(walletId);
 
@@ -99,10 +106,17 @@ export class TransactionService {
       },
     );
 
-    return { transactions, total };
+    return createPaginatedResponse(
+      transactions,
+      total,
+      query.page,
+      query.limit,
+    );
   }
 
-  async getAllTransactions(query: TransactionQueryDto) {
+  async getAllTransactions(
+    query: TransactionQueryDto,
+  ): Promise<PaginatedResponse<Transaction[]>> {
     const { limit, offset, page, ...filters } = query;
     const [transactions, total] = await this.transactionRepository.findAndCount(
       {
@@ -114,11 +128,14 @@ export class TransactionService {
       },
     );
 
-    return { transactions, total };
+    return createPaginatedResponse(transactions, total, page, query.limit);
   }
 
-  async getTransactionsByType(type: string, query: TransactionQueryDto) {
-    const { offset, limit } = query;
+  async getTransactionsByType(
+    type: string,
+    query: TransactionQueryDto,
+  ): Promise<PaginatedResponse<Transaction[]>> {
+    const { offset, limit, page } = query;
     const [transactions, total] = await this.transactionRepository.findAndCount(
       {
         where: { type },
@@ -129,6 +146,6 @@ export class TransactionService {
       },
     );
 
-    return { transactions, total };
+    return createPaginatedResponse(transactions, total, page, limit);
   }
 }

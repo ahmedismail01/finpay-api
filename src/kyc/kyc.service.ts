@@ -15,6 +15,10 @@ import { User } from '../user/entities/user.entity';
 import { KycQueryDto } from './dtos/kyc-query.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { Currency } from '../database/entities/currency.entity';
+import {
+  createPaginatedResponse,
+  PaginatedResponse,
+} from '../common/utils/pagination.helper';
 
 @Injectable()
 export class KycService {
@@ -31,18 +35,33 @@ export class KycService {
     const existingKyc = await this.kycRepository.findOne({
       where: { userId: user.id },
     });
-    if (existingKyc) {
-      throw new BadRequestException('KYC already exists for this user');
+    if (existingKyc?.status == KycStatus.PENDING) {
+      throw new BadRequestException('Pending KYC already exists for this user');
     }
+
+    if (existingKyc?.status == KycStatus.APPROVED) {
+      throw new BadRequestException(
+        'Approved KYC already exists for this user',
+      );
+    }
+
     return this.kycRepository.save({ ...createKycDto, userId: user.id });
   }
 
-  async getKyc(query: KycQueryDto) {
-    const records = await this.kycRepository.find({ where: query });
-    if (records.length === 0) {
-      throw new NotFoundException('KYC not found');
-    }
-    return records;
+  async getKyc(query: KycQueryDto): Promise<Kyc | null> {
+    const kyc = await this.kycRepository.findOne({ where: query });
+    return kyc;
+  }
+
+  async getKycs(query: KycQueryDto): Promise<PaginatedResponse<Kyc[]>> {
+    const { offset, limit, page, ...filters } = query;
+    const [records, total] = await this.kycRepository.findAndCount({
+      where: filters,
+      skip: offset,
+      take: limit,
+    });
+
+    return createPaginatedResponse(records, total, page, limit);
   }
 
   async rejectKyc(kycId: number, rejectKycDto: RejectKycDto, admin: User) {
@@ -78,6 +97,7 @@ export class KycService {
     if (kyc.status === KycStatus.APPROVED) {
       throw new BadRequestException('KYC already approved');
     }
+
     kyc.status = KycStatus.APPROVED;
     await this.kycRepository.save(kyc);
     const user = await this.userService.update(kyc.userId, {

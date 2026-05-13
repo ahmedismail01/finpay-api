@@ -14,6 +14,10 @@ import { Provider } from '../database/entities/provider.entity';
 import { WalletService } from '../wallet/wallet.service';
 import { TransactionService } from '../transaction/transaction.service';
 import { PaymentQueryDto } from './dtos/payment-query.dto';
+import {
+  createPaginatedResponse,
+  PaginatedResponse,
+} from '../common/utils/pagination.helper';
 
 @Injectable()
 export class PaymentService {
@@ -92,7 +96,11 @@ export class PaymentService {
     return payment;
   }
 
-  async getUserPayments(userId: number, limit: number = 10, page: number = 1) {
+  async getUserPayments(
+    userId: number,
+    limit: number = 10,
+    page: number = 1,
+  ): Promise<PaginatedResponse<Payment[]>> {
     const offset = (page - 1) * limit;
     const [payments, total] = await this.paymentRepository.findAndCount({
       where: { user: { id: userId } },
@@ -102,11 +110,14 @@ export class PaymentService {
       skip: offset,
     });
 
-    return { payments, total };
+    return createPaginatedResponse(payments, total, page, limit);
   }
 
-  async getWalletPayments(walletId: number, query: PaymentQueryDto) {
-    const { offset, limit } = query;
+  async getWalletPayments(
+    walletId: number,
+    query: PaymentQueryDto,
+  ): Promise<PaginatedResponse<Payment[]>> {
+    const { offset, limit, page } = query;
     // Verify wallet exists
     await this.walletService.getWalletById(walletId);
 
@@ -118,10 +129,12 @@ export class PaymentService {
       skip: offset,
     });
 
-    return { payments, total };
+    return createPaginatedResponse(payments, total, page, limit);
   }
 
-  async getAllPayments(query: PaymentQueryDto) {
+  async getAllPayments(
+    query: PaymentQueryDto,
+  ): Promise<PaginatedResponse<Payment[]>> {
     const { page, limit, offset, ...filters } = query;
     const [payments, total] = await this.paymentRepository.findAndCount({
       where: filters,
@@ -131,7 +144,7 @@ export class PaymentService {
       skip: offset,
     });
 
-    return { payments, total };
+    return createPaginatedResponse(payments, total, page, limit);
   }
 
   async updatePaymentStatus(

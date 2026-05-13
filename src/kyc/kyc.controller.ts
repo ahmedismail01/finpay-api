@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Query,
+  UploadedFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -18,25 +19,23 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../common/enums';
 import { createFileUploadInterceptor } from '../common/utils/multer.helper';
 import { KycQueryDto } from './dtos/kyc-query.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { PaginationBaseDto } from '../common/dtos/pagination-base.dto';
 
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+
+const fields = [
+  { name: 'documentFront', maxCount: 1 },
+  { name: 'documentBack', maxCount: 1 },
+];
 @Controller('kyc')
 @ApiBearerAuth()
 export class KycController {
   constructor(private readonly kycService: KycService) {}
 
   @Post()
-  @UseInterceptors(
-    createFileUploadInterceptor(
-      [
-        { name: 'documentFront', maxCount: 1 },
-        { name: 'documentBack', maxCount: 1 },
-      ],
-      './uploads/kyc',
-      allowedMimeTypes,
-    ),
-  )
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(createFileUploadInterceptor(fields, allowedMimeTypes))
   async uploadKyc(
     @Body() body: CreateKycDto,
     @CurrentUser() user: Partial<User>,
@@ -69,10 +68,14 @@ export class KycController {
 
   @Get('/mine')
   async getMyKycs(
-    @Query() query: KycQueryDto,
-    @CurrentUser() user: Partial<User>,
+    @Query() query: PaginationBaseDto,
+    @CurrentUser() user: User,
   ) {
-    return this.kycService.getKyc({ ...query, userId: user.id });
+    return this.kycService.getKyc({
+      ...query,
+      offset: query.offset,
+      userId: user.id,
+    });
   }
 
   @Post('/:kycId/reject')
