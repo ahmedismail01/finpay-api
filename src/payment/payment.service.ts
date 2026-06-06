@@ -83,7 +83,7 @@ export class PaymentService {
     return this.paymentRepository.save(savedPayment);
   }
 
-  async getPaymentById(paymentId: number): Promise<Payment> {
+  async getPaymentById(paymentId: string): Promise<Payment> {
     const payment = await this.paymentRepository.findOne({
       where: { id: paymentId },
       relations: ['user', 'wallet', 'provider', 'transaction'],
@@ -97,7 +97,7 @@ export class PaymentService {
   }
 
   async getUserPayments(
-    userId: number,
+    userId: string,
     limit: number = 10,
     page: number = 1,
   ): Promise<PaginatedResponse<Payment[]>> {
@@ -114,7 +114,7 @@ export class PaymentService {
   }
 
   async getWalletPayments(
-    walletId: number,
+    walletId: string,
     query: PaymentQueryDto,
   ): Promise<PaginatedResponse<Payment[]>> {
     const { offset, limit, page } = query;
@@ -148,7 +148,7 @@ export class PaymentService {
   }
 
   async updatePaymentStatus(
-    paymentId: number,
+    paymentId: string,
     status: string,
     log?: any,
   ): Promise<Payment> {
@@ -162,7 +162,7 @@ export class PaymentService {
     return this.paymentRepository.save(payment);
   }
 
-  async refundPayment(paymentId: number): Promise<Payment> {
+  async refundPayment(paymentId: string): Promise<Payment> {
     const payment = await this.getPaymentById(paymentId);
 
     if (payment.status === 'refunded') {

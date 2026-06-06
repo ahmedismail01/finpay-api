@@ -2,8 +2,8 @@ import { IsNumber, IsString, IsUUID, IsOptional, Min } from 'class-validator';
 import { TransactionType } from '../../common/enums';
 
 export class CreateTransactionDto {
-  @IsNumber()
-  walletId: number;
+  @IsUUID()
+  walletId: string;
 
   @IsNumber()
   @Min(1)

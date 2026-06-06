@@ -11,7 +11,7 @@ export class Kyc extends BaseEntity {
   user: Relation<User>;
 
   @Column({ name: 'user_id' })
-  userId: number;
+  userId: string;
 
   @Column({ type: 'enum', enum: KycType })
   type: KycType;

@@ -5,20 +5,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Kyc } from './entities/kyc.entity';
-import { Repository, Transaction } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateKycDto } from './dtos/create-kyc.dto';
 import { RejectKycDto } from './dtos/reject-kyc.dto';
 import { UserService } from '../user/user.service';
 import { KycStatus } from '../common/enums';
 import { User } from '../user/entities/user.entity';
-import { KycQueryDto } from './dtos/kyc-query.dto';
+import { KycListQueryDto, KycQueryDto } from './dtos/kyc-query.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { Currency } from '../database/entities/currency.entity';
 import {
   createPaginatedResponse,
   PaginatedResponse,
 } from '../common/utils/pagination.helper';
+import { DataSource } from 'typeorm';
+import { Wallet } from '../wallet/entities/wallet.entity';
 
 @Injectable()
 export class KycService {
@@ -29,6 +31,7 @@ export class KycService {
     private readonly currencyRepository: Repository<Currency>,
     private readonly userService: UserService,
     private readonly walletService: WalletService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async createKyc(createKycDto: CreateKycDto, user: Partial<User>) {
@@ -53,7 +56,7 @@ export class KycService {
     return kyc;
   }
 
-  async getKycs(query: KycQueryDto): Promise<PaginatedResponse<Kyc[]>> {
+  async getKycs(query: KycListQueryDto): Promise<PaginatedResponse<Kyc[]>> {
     const { offset, limit, page, ...filters } = query;
     const [records, total] = await this.kycRepository.findAndCount({
       where: filters,
@@ -64,7 +67,7 @@ export class KycService {
     return createPaginatedResponse(records, total, page, limit);
   }
 
-  async rejectKyc(kycId: number, rejectKycDto: RejectKycDto, admin: User) {
+  async rejectKyc(kycId: string, rejectKycDto: RejectKycDto, admin: User) {
     const kyc = await this.kycRepository.findOne({
       where: { id: kycId },
     });
@@ -88,43 +91,54 @@ export class KycService {
     return kyc;
   }
 
-  async verifyKyc(kycId: number) {
-    const kyc = await this.kycRepository.findOne({ where: { id: kycId } });
-    if (!kyc) {
-      throw new NotFoundException('KYC not found');
-    }
-
-    if (kyc.status === KycStatus.APPROVED) {
-      throw new BadRequestException('KYC already approved');
-    }
-
-    kyc.status = KycStatus.APPROVED;
-    await this.kycRepository.save(kyc);
-    const user = await this.userService.update(kyc.userId, {
-      isVerified: true,
-    });
-
-    let currency = await this.currencyRepository.findOne({
-      where: { isDefault: true },
-    });
-
-    if (!currency) {
-      currency = await this.currencyRepository.findOne({});
-    }
-
-    if (!currency) {
-      throw new InternalServerErrorException('No Currency Found');
-    }
-
-    const userWallet = await this.walletService.getWallet({ userId: user.id });
-
-    if (!userWallet) {
-      await this.walletService.createWallet(user, {
-        currencyId: currency.id,
-        initialBalance: 0.0,
+  async verifyKyc(kycId: string): Promise<Kyc> {
+    return this.dataSource.transaction(async (manager) => {
+      const kyc = await manager.findOne(Kyc, {
+        where: { id: kycId },
       });
-    }
 
-    return kyc;
+      if (!kyc) {
+        throw new NotFoundException('KYC not found');
+      }
+
+      if (kyc.status === KycStatus.APPROVED) {
+        throw new BadRequestException('KYC already approved');
+      }
+
+      let currency = await manager.findOne(Currency, {
+        where: { isDefault: true },
+      });
+
+      if (!currency) {
+        currency = await manager.findOne(Currency, {
+          where: {},
+        });
+      }
+
+      if (!currency) {
+        throw new InternalServerErrorException('No Currency Found');
+      }
+
+      kyc.status = KycStatus.APPROVED;
+      await manager.save(kyc);
+
+      await manager.update(User, { id: kyc.userId }, { isVerified: true });
+
+      const wallet = await manager.findOne(Wallet, {
+        where: { userId: kyc.userId },
+      });
+
+      if (!wallet) {
+        const newWallet = manager.create(Wallet, {
+          userId: kyc.userId,
+          currencyId: currency.id,
+          balance: 0,
+        });
+
+        await manager.save(newWallet);
+      }
+
+      return kyc;
+    });
   }
 }

@@ -5,9 +5,10 @@ import { UserModule } from '../user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Kyc } from './entities/kyc.entity';
 import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { memoryStorage } from 'multer';
 import { WalletModule } from '../wallet/wallet.module';
 import { Currency } from '../database/entities/currency.entity';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
@@ -20,8 +21,9 @@ const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
     WalletModule,
     TypeOrmModule.forFeature([Kyc, Currency]),
     MulterModule.register({
-      dest: './uploads/kyc',
+      storage: memoryStorage(),
     }),
+    CloudinaryModule,
   ],
 })
 export class KycModule {}

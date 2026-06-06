@@ -14,7 +14,6 @@ export class UserController {
 
   @Get('profile')
   async getProfile(@CurrentUser() user: User) {
-    console.log(user);
     return this.userService.findOne({ id: user.id });
   }
 

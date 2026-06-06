@@ -1,8 +1,8 @@
 import { IsNumber, IsUUID, Min } from 'class-validator';
 
 export class CreateWalletDto {
-  @IsNumber()
-  currencyId: number;
+  @IsUUID()
+  currencyId: string;
 
   @IsNumber()
   @Min(0)

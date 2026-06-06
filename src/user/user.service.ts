@@ -39,7 +39,7 @@ export class UserService {
     return user;
   }
 
-  async update(id: number, data: Partial<User>): Promise<User> {
+  async update(id: string, data: Partial<User>): Promise<User> {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException('User not found');

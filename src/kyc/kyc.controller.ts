@@ -6,7 +6,6 @@ import {
   Param,
   Post,
   Query,
-  UploadedFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -18,24 +17,33 @@ import { User } from '../user/entities/user.entity';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../common/enums';
 import { createFileUploadInterceptor } from '../common/utils/multer.helper';
-import { KycQueryDto } from './dtos/kyc-query.dto';
-import { ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { KycListQueryDto, KycQueryDto } from './dtos/kyc-query.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { PaginationBaseDto } from '../common/dtos/pagination-base.dto';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
-const fields = [
-  { name: 'documentFront', maxCount: 1 },
-  { name: 'documentBack', maxCount: 1 },
-];
 @Controller('kyc')
 @ApiBearerAuth()
 export class KycController {
-  constructor(private readonly kycService: KycService) {}
+  constructor(
+    private readonly kycService: KycService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Post()
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(createFileUploadInterceptor(fields, allowedMimeTypes))
+  @ApiBody({ type: CreateKycDto })
+  @UseInterceptors(
+    createFileUploadInterceptor(
+      [
+        { name: 'documentFront', maxCount: 1 },
+        { name: 'documentBack', maxCount: 1 },
+      ],
+      allowedMimeTypes,
+    ),
+  )
   async uploadKyc(
     @Body() body: CreateKycDto,
     @CurrentUser() user: Partial<User>,
@@ -50,11 +58,19 @@ export class KycController {
         'Both document front and back are required',
       );
     }
+
+    const [frontUpload, backUpload] = await Promise.all([
+      this.cloudinaryService.uploadFile(files.documentFront[0]),
+      this.cloudinaryService.uploadFile(files.documentBack[0]),
+    ]);
+
+    const filesUploaded = [frontUpload, backUpload];
+
     return this.kycService.createKyc(
       {
         ...body,
-        documentFront: files.documentFront[0].path,
-        documentBack: files.documentBack[0].path,
+        documentFront: filesUploaded[0].secure_url,
+        documentBack: filesUploaded[1].secure_url,
       },
       user,
     );
@@ -62,18 +78,13 @@ export class KycController {
 
   @Get('/')
   @Roles(Role.ADMIN)
-  async getKyc(@Query() query: KycQueryDto) {
-    return this.kycService.getKyc(query);
+  async getKyc(@Query() query: KycListQueryDto) {
+    return this.kycService.getKycs(query);
   }
 
   @Get('/mine')
-  async getMyKycs(
-    @Query() query: PaginationBaseDto,
-    @CurrentUser() user: User,
-  ) {
+  async getMyKycs(@CurrentUser() user: User) {
     return this.kycService.getKyc({
-      ...query,
-      offset: query.offset,
       userId: user.id,
     });
   }
@@ -82,7 +93,7 @@ export class KycController {
   @Roles(Role.ADMIN)
   async rejectKyc(
     @CurrentUser() admin: User,
-    @Param('kycId') kycId: number,
+    @Param('kycId') kycId: string,
     @Body() body: RejectKycDto,
   ) {
     return this.kycService.rejectKyc(kycId, body, admin);
@@ -90,7 +101,7 @@ export class KycController {
 
   @Post('/:kycId/verify')
   @Roles(Role.ADMIN)
-  async verifyKyc(@Param('kycId') kycId: number) {
+  async verifyKyc(@Param('kycId') kycId: string) {
     return this.kycService.verifyKyc(kycId);
   }
 }

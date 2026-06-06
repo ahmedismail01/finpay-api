@@ -30,7 +30,7 @@ export class TransactionController {
   }
 
   @Get(':transactionId')
-  async getTransaction(@Param('transactionId') transactionId: number) {
+  async getTransaction(@Param('transactionId') transactionId: string) {
     return this.transactionService.getTransactionById(transactionId);
   }
 
@@ -38,7 +38,7 @@ export class TransactionController {
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
   async getWalletTransactions(
-    @Param('walletId') walletId: number,
+    @Param('walletId') walletId: string,
     @Query() query: TransactionQueryDto,
   ) {
     return this.transactionService.getWalletTransactions(walletId, query);

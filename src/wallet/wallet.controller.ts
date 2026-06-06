@@ -29,7 +29,7 @@ export class WalletController {
 
   @Get(':walletId')
   @Roles(Role.ADMIN)
-  async getWallet(@Param('walletId') walletId: number) {
+  async getWallet(@Param('walletId') walletId: string) {
     return this.walletService.getWalletById(walletId);
   }
 
@@ -45,7 +45,7 @@ export class WalletController {
   @Put(':walletId')
   @Roles(Role.ADMIN)
   async updateWallet(
-    @Param('walletId') walletId: number,
+    @Param('walletId') walletId: string,
     @Body() updateWalletDto: UpdateWalletDto,
     @CurrentUser() user: User,
   ) {
@@ -65,7 +65,7 @@ export class WalletController {
   @Put(':walletId/suspend')
   @Roles(Role.ADMIN)
   async suspendWallet(
-    @Param('walletId') walletId: number,
+    @Param('walletId') walletId: string,
     @Body() body: { reason: string },
     @CurrentUser() user: User,
   ) {
@@ -74,7 +74,7 @@ export class WalletController {
 
   @Put(':walletId/activate')
   @Roles(Role.ADMIN)
-  async activateWallet(@Param('walletId') walletId: number) {
+  async activateWallet(@Param('walletId') walletId: string) {
     return this.walletService.activateWallet(walletId);
   }
 }

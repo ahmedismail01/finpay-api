@@ -16,15 +16,15 @@ export class Wallet extends BaseEntity {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'int', name: 'user_id' })
-  userId: number;
+  @Column({ type: 'uuid', name: 'user_id' })
+  userId: string;
 
   @ManyToOne(() => Currency)
   @JoinColumn({ name: 'currency_id' })
   currency: Currency;
 
-  @Column({ name: 'currency_id', type: 'int' })
-  currencyId: number;
+  @Column({ name: 'currency_id', type: 'uuid' })
+  currencyId: string;
 
   @Column({ type: 'bigint', default: 0 })
   balanceInCents: number;

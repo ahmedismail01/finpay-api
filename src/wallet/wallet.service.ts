@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wallet } from './entities/wallet.entity';
 import { CreateWalletDto } from './dtos/create-wallet.dto';
-import { UpdateWalletDto } from './dtos/update-wallet.dto';
 import { User } from '../user/entities/user.entity';
 import { Currency } from '../database/entities/currency.entity';
 import { WalletQueryDto } from './dtos/wallet-query.dto';
@@ -56,7 +55,7 @@ export class WalletService {
     return this.walletRepository.save(wallet);
   }
 
-  async getWalletByUser(userId: number): Promise<Wallet> {
+  async getWalletByUser(userId: string): Promise<Wallet> {
     const wallet = await this.walletRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user', 'currency'],
@@ -69,7 +68,7 @@ export class WalletService {
     return wallet;
   }
 
-  async getWalletById(walletId: number): Promise<Wallet> {
+  async getWalletById(walletId: string): Promise<Wallet> {
     const wallet = await this.walletRepository.findOne({
       where: { id: walletId },
       relations: ['user', 'currency'],
@@ -83,7 +82,7 @@ export class WalletService {
   }
 
   async updateBalance(
-    walletId: number,
+    walletId: string,
     amountInCents: number,
   ): Promise<Wallet> {
     const wallet = await this.getWalletById(walletId);
@@ -103,7 +102,7 @@ export class WalletService {
   }
 
   async suspendWallet(
-    walletId: number,
+    walletId: string,
     suspendedBy: User,
     reason: string,
   ): Promise<Wallet> {
@@ -116,7 +115,7 @@ export class WalletService {
     return this.walletRepository.save(wallet);
   }
 
-  async activateWallet(walletId: number): Promise<Wallet> {
+  async activateWallet(walletId: string): Promise<Wallet> {
     const wallet = await this.getWalletById(walletId);
 
     wallet.isActive = true;

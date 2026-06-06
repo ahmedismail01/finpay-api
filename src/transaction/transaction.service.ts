@@ -76,7 +76,7 @@ export class TransactionService {
     return this.transactionRepository.save(transaction);
   }
 
-  async getTransactionById(transactionId: number): Promise<Transaction> {
+  async getTransactionById(transactionId: string): Promise<Transaction> {
     const transaction = await this.transactionRepository.findOne({
       where: { id: transactionId },
       relations: ['wallet', 'payment'],
@@ -90,7 +90,7 @@ export class TransactionService {
   }
 
   async getWalletTransactions(
-    walletId: number,
+    walletId: string,
     query: TransactionQueryDto,
   ): Promise<PaginatedResponse<Transaction[]>> {
     // Verify wallet exists

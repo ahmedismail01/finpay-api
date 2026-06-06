@@ -16,6 +16,8 @@ const admin_user: Partial<User> = {
   firstName: 'admin',
   lastName: 'user',
   role: Role.ADMIN,
+  isVerified: true,
+  isActive: true,
 };
 
 export class SeedAdmin1778470895538 implements MigrationInterface {
@@ -31,5 +33,9 @@ export class SeedAdmin1778470895538 implements MigrationInterface {
     await queryRunner.manager.getRepository(User).save(admin_user);
   }
 
-  public async down(queryRunner: QueryRunner): Promise<void> {}
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.manager
+      .getRepository(User)
+      .delete({ email: admin_user.email });
+  }
 }

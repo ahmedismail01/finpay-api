@@ -31,7 +31,7 @@ export class PaymentController {
   }
 
   @Get(':paymentId')
-  async getPayment(@Param('paymentId') paymentId: number) {
+  async getPayment(@Param('paymentId') paymentId: string) {
     return this.paymentService.getPaymentById(paymentId);
   }
 
@@ -49,7 +49,7 @@ export class PaymentController {
 
   @Get('wallet/:walletId')
   async getWalletPayments(
-    @Param('walletId') walletId: number,
+    @Param('walletId') walletId: string,
     @Query() query: PaymentQueryDto,
   ) {
     return this.paymentService.getWalletPayments(walletId, query);

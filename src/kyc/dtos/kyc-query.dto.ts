@@ -1,14 +1,26 @@
-import { IsEnum, IsNumber, IsOptional } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsUUID } from 'class-validator';
 import { KycStatus } from '../../common/enums';
 import { PaginationBaseDto } from '../../common/dtos/pagination-base.dto';
 
-export class KycQueryDto extends PaginationBaseDto {
+export class KycQueryDto {
   @IsOptional()
   @IsNumber()
-  id?: number;
+  id?: string;
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
+  @IsOptional()
+  @IsEnum(KycStatus)
+  status?: KycStatus;
+}
+
+export class KycListQueryDto extends PaginationBaseDto {
+  @IsOptional()
+  @IsUUID()
+  id?: string;
   @IsOptional()
   @IsNumber()
-  userId?: number;
+  userId?: string;
   @IsOptional()
   @IsEnum(KycStatus)
   status?: KycStatus;

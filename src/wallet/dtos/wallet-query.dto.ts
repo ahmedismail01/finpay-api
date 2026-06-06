@@ -2,10 +2,10 @@ import { IsNumber, IsOptional, IsUUID } from 'class-validator';
 
 export class WalletQueryDto {
   @IsOptional()
-  @IsNumber()
-  currencyId?: number;
+  @IsUUID()
+  currencyId?: string;
 
   @IsOptional()
-  @IsNumber()
-  userId?: number;
+  @IsUUID()
+  userId?: string;
 }
